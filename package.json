@@ -1,0 +1,13 @@
+{
+  "name": "@codemix/component-testing-library",
+  "version": "0.0.1",
+  "description": "A simple library for testing component based interfaces, works great with React, Angular and Vue.",
+  "main": "index.js",
+  "private": true,
+  "repository": "https://github.com/codemix/component-testing-library",
+  "author": "Charles Pick <charles@codemix.com>",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ]
+}
