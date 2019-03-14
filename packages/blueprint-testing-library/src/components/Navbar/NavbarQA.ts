@@ -1,6 +1,10 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, getAlignment, hasClassNames } from "../../utils";
+import { getAlignment } from "../../utils";
 
 export class NavbarQA extends QA {
   static componentName = "Navbar";

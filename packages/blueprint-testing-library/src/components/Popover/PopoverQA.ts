@@ -1,6 +1,9 @@
-import { QA } from "component-testing-library";
-import { Classes, Keys } from "@blueprintjs/core";
-import { classNamesToSelector, hasClassNames } from "../../utils";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
+import { Classes } from "@blueprintjs/core";
 import { PortalQA } from "../Portal";
 import { OverlayQA } from "../Overlay";
 

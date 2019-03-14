@@ -1,12 +1,12 @@
-import { QA } from "component-testing-library";
-import { Classes } from "@blueprintjs/core";
 import {
+  QA,
   classNamesToSelector,
   matchText,
-  firstResultOrNull,
+  firstOrUndefined,
   atLeastOne,
   hasClassNames
-} from "../../utils";
+} from "component-testing-library";
+import { Classes } from "@blueprintjs/core";
 import { Matcher } from "react-testing-library";
 
 export class TabsQA extends QA {
@@ -45,7 +45,7 @@ export class TabsQA extends QA {
   }
 
   queryTabById(matcher: Matcher) {
-    return firstResultOrNull(this.queryTabsById(matcher));
+    return firstOrUndefined(this.queryTabsById(matcher));
   }
 
   getTabsById(matcher: Matcher) {
@@ -66,7 +66,7 @@ export class TabsQA extends QA {
   }
 
   queryTabByTitle(matcher: Matcher) {
-    return firstResultOrNull(this.queryTabsByTitle(matcher));
+    return firstOrUndefined(this.queryTabsByTitle(matcher));
   }
 
   getTabsByTitle(matcher: Matcher) {

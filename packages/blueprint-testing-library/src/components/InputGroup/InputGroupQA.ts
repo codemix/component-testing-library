@@ -1,6 +1,11 @@
-import { InputQA, QA } from "component-testing-library";
+import {
+  InputQA,
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, hasClassNames, getIntent } from "../../utils";
+import { getIntent } from "../../utils";
 import { IconQA } from "../Icon";
 
 export class InputGroupQA extends QA {

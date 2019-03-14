@@ -7,6 +7,7 @@ import {
 } from "react-testing-library";
 import { QA, mount } from "./QA";
 import { createQAContext } from "./QAContext";
+import { makeUnion } from "./makeUnion";
 
 describe("QA", () => {
   const Button = ({ children, ...extra }: any) => (
@@ -27,6 +28,12 @@ describe("QA", () => {
     </div>
   );
 
+  const Divider = ({ children, ...extra }: any) => (
+    <div data-testid="Divider" {...extra}>
+      {children}
+    </div>
+  );
+
   const TestToolbar = ({ onButtonClick }: any) => (
     <Toolbar data-testid="TestToolbar">
       <ButtonGroup>
@@ -34,6 +41,7 @@ describe("QA", () => {
         <Button onClick={() => onButtonClick("B")}>B</Button>
         <Button onClick={() => onButtonClick("C")}>C</Button>
       </ButtonGroup>
+      <Divider />
       <ButtonGroup>
         <Button onClick={() => onButtonClick("X")}>X</Button>
         <Button onClick={() => onButtonClick("Y")}>Y</Button>
@@ -50,6 +58,10 @@ describe("QA", () => {
     }
   }
 
+  class DividerQA extends QA {
+    static componentName = "Divider";
+  }
+
   class ButtonGroupQA extends QA {
     static componentName = "ButtonGroup";
 
@@ -58,11 +70,17 @@ describe("QA", () => {
     }
   }
 
+  const DividerOrButtonGroupQA = makeUnion(ButtonGroupQA, DividerQA);
+
   class ToolbarQA extends QA {
     static componentName = "Toolbar";
 
     get buttonGroups() {
       return this.getAll(ButtonGroupQA);
+    }
+
+    get children() {
+      return this.getAll(DividerOrButtonGroupQA);
     }
   }
 
@@ -102,6 +120,8 @@ describe("QA", () => {
     console.log(clicks);
     console.log(JSON.stringify(context.eventRecorder, null, 2));
     console.log(context.eventRecorder.toString());
+
+    console.log(component.children);
     // component.buttonGroups[0].buttons[0].click();
   });
 });

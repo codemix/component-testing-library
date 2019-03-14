@@ -1,6 +1,9 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, hasClassNames } from "../../utils";
 
 export class HTMLTableQA extends QA.ofType<HTMLTableElement>() {
   static componentName = "HTMLTable";

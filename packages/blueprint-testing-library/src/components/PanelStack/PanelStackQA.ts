@@ -1,6 +1,5 @@
-import { QA } from "component-testing-library";
+import { QA, classNamesToSelector } from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector } from "../../utils";
 import { ButtonQA } from "../Button";
 
 export class PanelStackQA extends QA {

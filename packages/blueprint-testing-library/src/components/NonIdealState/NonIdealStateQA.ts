@@ -1,6 +1,9 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  getElementText
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, getElementText } from "../../utils";
 import { IconQA } from "../Icon";
 
 export class NonIdealStateQA extends QA {

@@ -2,7 +2,7 @@
   "name": "blueprint-testing-library",
   "version": "0.0.1",
   "description": "A library for testing UIs built with Blueprint JS.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "repository": "https://github.com/codemix/component-testing-library",
   "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
@@ -28,7 +28,7 @@
     "transform": {
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(tsx?)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

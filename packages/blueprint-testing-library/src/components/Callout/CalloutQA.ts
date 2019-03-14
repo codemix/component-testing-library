@@ -1,7 +1,11 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  getElementText
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
 import { IconQA } from "../Icon";
-import { getIntent, classNamesToSelector, getElementText } from "../../utils";
+import { getIntent } from "../../utils";
 
 export class CalloutQA extends QA {
   static componentName = "Callout";

@@ -1,13 +1,13 @@
 import { Matcher } from "react-testing-library";
-import { QA } from "component-testing-library";
-import { Classes } from "@blueprintjs/core";
 import {
+  QA,
   classNamesToSelector,
   matchText,
-  firstResultOrNull,
+  firstOrUndefined,
   atLeastOne,
   hasClassNames
-} from "../../utils";
+} from "component-testing-library";
+import { Classes } from "@blueprintjs/core";
 import { MenuItemQA } from "./MenuItemQA";
 
 export class MenuQA extends QA {
@@ -29,6 +29,10 @@ export class MenuQA extends QA {
     return this.items.find(item => item.isActive);
   }
 
+  get activeItems() {
+    return this.items.filter(item => item.isActive);
+  }
+
   queryItemsByText(matcher: Matcher) {
     return this.items.filter(item =>
       matchText(item.text, item.element, matcher)
@@ -36,7 +40,7 @@ export class MenuQA extends QA {
   }
 
   queryItemByText(matcher: Matcher) {
-    return firstResultOrNull(this.queryItemsByText(matcher));
+    return firstOrUndefined(this.queryItemsByText(matcher));
   }
 
   getItemsByText(matcher: Matcher) {
@@ -61,7 +65,7 @@ export class MenuQA extends QA {
   }
 
   queryItemByIcon(matcher: Matcher) {
-    return firstResultOrNull(this.queryItemsByIcon(matcher));
+    return firstOrUndefined(this.queryItemsByIcon(matcher));
   }
 
   getItemsByIcon(matcher: Matcher) {

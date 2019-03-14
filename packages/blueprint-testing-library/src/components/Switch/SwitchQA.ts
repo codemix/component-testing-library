@@ -1,6 +1,5 @@
-import { QA } from "component-testing-library";
+import { QA, classNamesToSelector } from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector } from "../../utils";
 import { CheckboxQA } from "../Checkbox";
 
 export class SwitchQA extends CheckboxQA {

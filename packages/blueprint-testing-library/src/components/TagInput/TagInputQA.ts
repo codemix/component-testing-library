@@ -1,8 +1,6 @@
-import { QA, InputQA } from "component-testing-library";
-import { Classes, Keys } from "@blueprintjs/core";
-import { classNamesToSelector } from "../../utils";
+import { QA, InputQA, classNamesToSelector } from "component-testing-library";
+import { Classes } from "@blueprintjs/core";
 import { TagQA } from "../Tag/TagQA";
-import { fireEvent } from "react-testing-library";
 
 export class TagInputQA extends QA {
   static componentName = "TagInput";
@@ -27,14 +25,27 @@ export class TagInputQA extends QA {
     return this.inputValues.tags.map(tag => tag.text);
   }
 
+  set values(values: Array<string>) {
+    const { tags } = this;
+    for (let i = tags.length - 1; i >= 0; i--) {
+      const tag = tags[i];
+      tag.remove();
+    }
+    this.addValues(...values);
+  }
+
   addValue(value: string) {
+    this.addValues(value);
+  }
+
+  addValues(...values: string[]) {
     const { ghostInput } = this;
 
     const clipboardData =
       typeof DataTransfer === "undefined"
         ? new MockDataTransfer()
         : new DataTransfer();
-    clipboardData.setData("text", `${value}\n`);
+    clipboardData.setData("text", `${values.join("\n")}\n`);
 
     const event = new Event("paste", {
       cancelable: true,
@@ -44,6 +55,17 @@ export class TagInputQA extends QA {
     Object.defineProperty(event, "clipboardData", { value: clipboardData });
 
     ghostInput.element.dispatchEvent(event);
+  }
+
+  hasValue(value: string) {
+    return this.values.includes(value);
+  }
+
+  removeValue(value: string) {
+    const tag = this.inputValues.tags.find(tag => tag.text === value);
+    if (tag != null) {
+      tag.remove();
+    }
   }
 }
 

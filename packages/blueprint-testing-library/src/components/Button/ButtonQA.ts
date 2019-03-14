@@ -1,14 +1,13 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes, Alignment } from "@blueprintjs/core";
 import { IconQA } from "../Icon";
-import {
-  classNamesToSelector,
-  getAlignment,
-  getIntent,
-  hasClassNames
-} from "../../utils";
+import { getAlignment, getIntent } from "../../utils";
 
-export class ButtonQA extends QA {
+export class ButtonQA extends QA.ofType<HTMLButtonElement>() {
   static componentName = "Button";
 
   static get selector() {

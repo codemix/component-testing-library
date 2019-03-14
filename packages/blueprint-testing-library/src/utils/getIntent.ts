@@ -1,5 +1,5 @@
 import { Classes, Intent } from "@blueprintjs/core";
-import { classNamesToSelector } from "./classNamesToSelector";
+import { classNamesToSelector } from "component-testing-library";
 
 export function getIntent(element: HTMLElement) {
   if (

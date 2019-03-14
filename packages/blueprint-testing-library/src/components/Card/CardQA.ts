@@ -1,6 +1,10 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { getElevation, classNamesToSelector, hasClassNames } from "../../utils";
+import { getElevation } from "../../utils";
 
 export class CardQA extends QA {
   static componentName = "Card";

@@ -1,6 +1,10 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { getIntent, classNamesToSelector, hasClassNames } from "../../utils";
+import { getIntent } from "../../utils";
 import { LabelQA } from "../HTMLElements";
 
 export class FormGroupQA extends QA {

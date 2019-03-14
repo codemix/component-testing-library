@@ -1,6 +1,9 @@
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, hasClassNames } from "../../utils";
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 
 export class BreadcrumbQA extends QA {
   static componentName = "Breadcrumb";

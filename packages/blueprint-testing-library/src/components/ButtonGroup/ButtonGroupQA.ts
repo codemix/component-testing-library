@@ -1,14 +1,14 @@
-import { QA } from "component-testing-library";
-import { Matcher } from "react-testing-library";
-import { Classes } from "@blueprintjs/core";
 import {
-  getAlignment,
+  QA,
   classNamesToSelector,
   hasClassNames,
   matchText,
   atLeastOne,
-  firstResultOrNull
-} from "../../utils";
+  firstOrUndefined
+} from "component-testing-library";
+import { Matcher } from "react-testing-library";
+import { Classes } from "@blueprintjs/core";
+import { getAlignment } from "../../utils";
 import { ButtonQA } from "../Button";
 
 export class ButtonGroupQA extends QA {
@@ -49,7 +49,7 @@ export class ButtonGroupQA extends QA {
   }
 
   queryButtonByText(matcher: Matcher) {
-    return firstResultOrNull(this.queryButtonsByText(matcher));
+    return firstOrUndefined(this.queryButtonsByText(matcher));
   }
 
   getButtonsByText(matcher: Matcher) {
@@ -74,7 +74,7 @@ export class ButtonGroupQA extends QA {
   }
 
   queryButtonByIcon(matcher: Matcher) {
-    return firstResultOrNull(this.queryButtonsByIcon(matcher));
+    return firstOrUndefined(this.queryButtonsByIcon(matcher));
   }
 
   getButtonsByIcon(matcher: Matcher) {

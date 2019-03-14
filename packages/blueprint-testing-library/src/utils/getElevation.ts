@@ -1,5 +1,5 @@
 import { Classes, Elevation } from "@blueprintjs/core";
-import { classNamesToSelector } from "./classNamesToSelector";
+import { classNamesToSelector } from "component-testing-library";
 
 export function getElevation(element: HTMLElement) {
   if (

@@ -1,5 +1,5 @@
 import { Classes, Alignment } from "@blueprintjs/core";
-import { classNamesToSelector } from "./classNamesToSelector";
+import { classNamesToSelector } from "component-testing-library";
 
 export function getAlignment(element: HTMLElement) {
   if (

@@ -18,22 +18,12 @@ export interface Interaction {
 
 export type EventLog = Array<RecordedEvent | Interaction>;
 
-export function getQAComponentPath(component: QA) {
-  let current: void | QA = component;
-  const parts = [];
-  while (current != null) {
-    parts.unshift(current.toString());
-    current = current.parent;
-  }
-  return parts;
-}
-
 export class EventRecorder {
   private log: EventLog = [];
   private currentInteraction: void | Interaction = undefined;
 
   recordEvent(component: QA, name: string, payload: object = {}) {
-    const path = getQAComponentPath(component);
+    const path = component.componentPath;
     const entry: RecordedEvent = {
       type: "event",
       path,
@@ -51,7 +41,7 @@ export class EventRecorder {
     const { currentInteraction } = this;
     const interaction: Interaction = {
       type: "interaction",
-      path: getQAComponentPath(component),
+      path: component.componentPath,
       name,
       children: []
     };

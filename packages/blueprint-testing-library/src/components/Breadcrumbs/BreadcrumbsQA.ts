@@ -1,6 +1,6 @@
 import { Classes } from "@blueprintjs/core";
+import { classNamesToSelector } from "component-testing-library";
 import { OverflowListQA } from "../OverflowList";
-import { classNamesToSelector } from "../../utils";
 import { PopoverQA } from "../Popover";
 import { BreadcrumbQA } from "./BreadcrumbQA";
 

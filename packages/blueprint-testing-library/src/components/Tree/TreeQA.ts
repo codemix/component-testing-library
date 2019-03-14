@@ -1,14 +1,14 @@
-import { QA } from "component-testing-library";
-import { Matcher } from "react-testing-library";
-import { Classes } from "@blueprintjs/core";
 import {
+  QA,
   classNamesToSelector,
   getElementText,
   hasClassNames,
   matchText,
-  firstResultOrNull,
+  firstOrUndefined,
   atLeastOne
-} from "../../utils";
+} from "component-testing-library";
+import { Matcher } from "react-testing-library";
+import { Classes } from "@blueprintjs/core";
 import { IconQA } from "../Icon";
 
 export class TreeQA extends QA {
@@ -29,7 +29,7 @@ export class TreeQA extends QA {
   }
 
   queryNodeByLabel(matcher: Matcher) {
-    return firstResultOrNull(this.queryNodesByLabel(matcher));
+    return firstOrUndefined(this.queryNodesByLabel(matcher));
   }
 
   getNodesByLabel(matcher: Matcher) {

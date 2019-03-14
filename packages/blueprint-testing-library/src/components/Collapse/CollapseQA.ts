@@ -1,6 +1,5 @@
-import { QA } from "component-testing-library";
+import { QA, classNamesToSelector } from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector } from "../../utils";
 
 export class CollapseQA extends QA {
   static componentName = "Collapse";

@@ -10,11 +10,13 @@ import {
   queryAllByText,
   queryAllByTitle,
   queryAllByValue,
-  Matcher
+  Matcher,
+  waitForElement
 } from "dom-testing-library";
 import { QAContext, createQAContext } from "./QAContext";
+import { firstOrUndefined, atLeastOne } from "./utils";
 
-export interface QAConfig<T, El extends HTMLElement = HTMLElement> {
+export interface QAStatics<T, El extends HTMLElement = HTMLElement> {
   new (element: El, parent: void | QA, context: QAContext): T;
   componentName: string;
   selector: string;
@@ -93,25 +95,49 @@ type FireEventName =
   | "animationIteration"
   | "transitionEnd";
 
+/**
+ * The QA component base class. All QA components should extend this.
+ */
 export class QA<El extends HTMLElement = HTMLElement> {
-  readonly element: El;
+  /**
+   * The primary DOM element associated with the QA.
+   */
+  public readonly element: El;
 
-  readonly parent: void | QA;
+  /**
+   * The parent QA for this one, if any.
+   */
+  protected readonly parent: void | QA;
 
-  readonly context: QAContext;
+  /**
+   * The context shared amongst all QAs in this tree.
+   */
+  protected readonly context: QAContext;
 
-  get textContent(): string {
+  /**
+   * Reads the normalized text content of the html element.
+   */
+  protected get textContent(): string {
     const { textContent } = this.element;
     return textContent === null ? "" : textContent.trim();
   }
 
-  static componentName: string;
+  /**
+   * The name of the UI component this QA is for..
+   */
+  public static componentName: string;
 
-  static get selector(): string {
+  /**
+   * The CSS selector used to identify this QA in the DOM.
+   */
+  public static get selector(): string {
     return `[data-testid="${this.componentName}"]`;
   }
 
-  static ofType<T extends HTMLElement>() {
+  /**
+   * Creates a typescript friendly version of the QA base class for the given HTMLElement type.
+   */
+  public static ofType<T extends HTMLElement>() {
     return this as new (
       element: HTMLElement,
       parent: void | QA,
@@ -119,7 +145,13 @@ export class QA<El extends HTMLElement = HTMLElement> {
     ) => QA<T>;
   }
 
-  static matches(element: HTMLElement, selector: string = this.selector) {
+  /**
+   * Returns true if this QA matches the given HTMLElement.
+   */
+  public static matches(
+    element: HTMLElement,
+    selector: string = this.selector
+  ) {
     return element.matches(selector);
   }
 
@@ -127,22 +159,34 @@ export class QA<El extends HTMLElement = HTMLElement> {
     this.element = element;
     this.parent = parent;
     this.context = context;
-    const existing = context.componentCache.get(element);
-    if (existing != null) {
-      return existing;
-    }
-    context.componentCache.set(element, this);
   }
 
-  instantiateComponent<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Get the path to the component.
+   */
+  public get componentPath(): Array<string> {
+    const { parent } = this;
+    if (parent != null) {
+      return parent.componentPath.concat(this.toString());
+    }
+    return [this.toString()];
+  }
+
+  /**
+   * Creates a new QA with this as a parent.
+   */
+  protected instantiateComponent<T extends QA>(
+    QAClass: QAStatics<T>,
     element: HTMLElement
   ): T {
-    return new QAClass(element, this, this.context);
+    return this.context.instantiateComponent(QAClass, element, this);
   }
 
-  instantiateComponents<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Creates an array of QAs with this as their parent.
+   */
+  protected instantiateComponents<T extends QA>(
+    QAClass: QAStatics<T>,
     elements: Array<Element>,
     selector: string = QAClass.selector
   ): Array<T> {
@@ -155,31 +199,55 @@ export class QA<El extends HTMLElement = HTMLElement> {
       .map((item: HTMLElement) => this.instantiateComponent(QAClass, item));
   }
 
-  querySelector(selector: string) {
+  /**
+   * Shortcut for `qa.element.querySelector()`.
+   * @param selector The selector to query for.
+   */
+  public querySelector(selector: string) {
     return this.element.querySelector(selector);
   }
 
-  querySelectorAll(selector: string) {
+  /**
+   * Shortcut for `qa.element.querySelectorAll()` but returns a real array rather than a `NodeList`.
+   * @param selector The selector to query for.
+   */
+  public querySelectorAll(selector: string) {
     return Array.from(this.element.querySelectorAll(selector));
   }
 
-  queryAll<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Find all instances of the given QA within this DOM element.
+   * @param QAClass The sub-class of QA to instantiate.
+   * @param selector The optional custom selector for the QA.
+   */
+  public queryAll<T extends QA>(
+    QAClass: QAStatics<T>,
     selector: string = QAClass.selector
   ): Array<T> {
     const elements = this.querySelectorAll(selector);
     return this.instantiateComponents(QAClass, elements, selector);
   }
 
-  query<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Find the first instance of the given QA within this DOM element.
+   * @param QAClass The sub-class of QA to instantiate.
+   * @param selector The optional custom selector for the QA.
+   */
+  public query<T extends QA>(
+    QAClass: QAStatics<T>,
     selector: string = QAClass.selector
   ): void | T {
     return firstOrUndefined(this.queryAll(QAClass, selector));
   }
 
-  getAll<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Get all the instances of the given QA within this DOM element.
+   * @param QAClass The sub-class of QA to instantiate.
+   * @param selector The optional custom selector for the QA.
+   * @throws if there is not at least one matching QA.
+   */
+  public getAll<T extends QA>(
+    QAClass: QAStatics<T>,
     selector: string = QAClass.selector
   ): Array<T> {
     return atLeastOne(
@@ -188,15 +256,26 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  get<T extends QA>(
-    QAClass: QAConfig<T>,
+  /**
+   * Get the first matching instance of the given QA within this DOM element.
+   * @param QAClass The sub-class of QA to instantiate.
+   * @param selector The optional custom selector for the QA.
+   * @throws if there is not at least one matching QA.
+   */
+  public get<T extends QA>(
+    QAClass: QAStatics<T>,
     selector: string = QAClass.selector
   ): T {
     return this.getAll(QAClass, selector)[0];
   }
 
+  /**
+   *
+   * @param QAClass
+   * @param input
+   */
   queryAllByAltText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -205,12 +284,15 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  queryByAltText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByAltText<T extends QA>(
+    QAClass: QAStatics<T>,
+    input: Matcher
+  ): void | T {
     return firstOrUndefined(this.queryAllByAltText(QAClass, input));
   }
 
   getAllByAltText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return atLeastOne(
@@ -219,12 +301,12 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  getByAltText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  getByAltText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return this.getAllByAltText(QAClass, input)[0];
   }
 
   queryAllByDisplayValue<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -234,14 +316,14 @@ export class QA<El extends HTMLElement = HTMLElement> {
   }
 
   queryByDisplayValue<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): void | T {
     return firstOrUndefined(this.queryAllByDisplayValue(QAClass, input));
   }
 
   getAllByDisplayValue<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return atLeastOne(
@@ -250,12 +332,12 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  getByDisplayValue<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByDisplayValue<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByDisplayValue(QAClass, input)[0];
   }
 
   queryAllByLabelText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -265,14 +347,14 @@ export class QA<El extends HTMLElement = HTMLElement> {
   }
 
   queryByLabelText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): void | T {
     return firstOrUndefined(this.queryAllByLabelText(QAClass, input));
   }
 
   getAllByLabelText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return atLeastOne(
@@ -281,12 +363,12 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  getByLabelText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByLabelText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByLabelText(QAClass, input)[0];
   }
 
   queryAllByPlaceholderText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -296,14 +378,14 @@ export class QA<El extends HTMLElement = HTMLElement> {
   }
 
   queryByPlaceholderText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): void | T {
     return firstOrUndefined(this.queryAllByPlaceholderText(QAClass, input));
   }
 
   getAllByPlaceholderText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return atLeastOne(
@@ -312,34 +394,37 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  getByPlaceholderText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByPlaceholderText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByPlaceholderText(QAClass, input)[0];
   }
 
-  queryAllByRole<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  queryAllByRole<T extends QA>(
+    QAClass: QAStatics<T>,
+    input: Matcher
+  ): Array<T> {
     return this.instantiateComponents(
       QAClass,
       queryAllByRole(this.element, input)
     );
   }
 
-  queryByRole<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByRole<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return firstOrUndefined(this.queryAllByRole(QAClass, input));
   }
 
-  getAllByRole<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  getAllByRole<T extends QA>(QAClass: QAStatics<T>, input: Matcher): Array<T> {
     return atLeastOne(
       this.queryAllByRole(QAClass, input),
       `Cannot find an element with role: ${String(input)}`
     );
   }
 
-  getByRole<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByRole<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByRole(QAClass, input)[0];
   }
 
   queryAllBySelectText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -349,14 +434,14 @@ export class QA<El extends HTMLElement = HTMLElement> {
   }
 
   queryBySelectText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): void | T {
     return firstOrUndefined(this.queryAllBySelectText(QAClass, input));
   }
 
   getAllBySelectText<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return atLeastOne(
@@ -365,12 +450,12 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  getBySelectText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getBySelectText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllBySelectText(QAClass, input)[0];
   }
 
   queryAllByTestId<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -379,45 +464,51 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  queryByTestId<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByTestId<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return firstOrUndefined(this.queryAllByTestId(QAClass, input));
   }
 
-  getAllByTestId<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  getAllByTestId<T extends QA>(
+    QAClass: QAStatics<T>,
+    input: Matcher
+  ): Array<T> {
     return atLeastOne(
       this.queryAllByTestId(QAClass, input),
       `Cannot find an element with test id: ${String(input)}`
     );
   }
 
-  getByTestId<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByTestId<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByTestId(QAClass, input)[0];
   }
 
-  queryAllByText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  queryAllByText<T extends QA>(
+    QAClass: QAStatics<T>,
+    input: Matcher
+  ): Array<T> {
     return this.instantiateComponents(
       QAClass,
       queryAllByText(this.element, input)
     );
   }
 
-  queryByText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return firstOrUndefined(this.queryAllByText(QAClass, input));
   }
 
-  getAllByText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  getAllByText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): Array<T> {
     return atLeastOne(
       this.queryAllByText(QAClass, input),
       `Cannot find an element with text: ${String(input)}`
     );
   }
 
-  getByText<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByText<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByText(QAClass, input)[0];
   }
 
   queryAllByTitle<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -426,23 +517,23 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  queryByTitle<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByTitle<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return firstOrUndefined(this.queryAllByTitle(QAClass, input));
   }
 
-  getAllByTitle<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  getAllByTitle<T extends QA>(QAClass: QAStatics<T>, input: Matcher): Array<T> {
     return atLeastOne(
       this.queryAllByTitle(QAClass, input),
       `Cannot find an element with title: ${String(input)}`
     );
   }
 
-  getByTitle<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByTitle<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByTitle(QAClass, input)[0];
   }
 
   queryAllByValue<T extends QA>(
-    QAClass: QAConfig<T>,
+    QAClass: QAStatics<T>,
     input: Matcher
   ): Array<T> {
     return this.instantiateComponents(
@@ -451,18 +542,18 @@ export class QA<El extends HTMLElement = HTMLElement> {
     );
   }
 
-  queryByValue<T extends QA>(QAClass: QAConfig<T>, input: Matcher): void | T {
+  queryByValue<T extends QA>(QAClass: QAStatics<T>, input: Matcher): void | T {
     return firstOrUndefined(this.queryAllByValue(QAClass, input));
   }
 
-  getAllByValue<T extends QA>(QAClass: QAConfig<T>, input: Matcher): Array<T> {
+  getAllByValue<T extends QA>(QAClass: QAStatics<T>, input: Matcher): Array<T> {
     return atLeastOne(
       this.queryAllByValue(QAClass, input),
       `Cannot find an element with value: ${String(input)}`
     );
   }
 
-  getByValue<T extends QA>(QAClass: QAConfig<T>, input: Matcher): T {
+  getByValue<T extends QA>(QAClass: QAStatics<T>, input: Matcher): T {
     return this.getAllByValue(QAClass, input)[0];
   }
 
@@ -779,19 +870,19 @@ export class QA<El extends HTMLElement = HTMLElement> {
 }
 
 export function mount<T extends QA>(
-  QAClass: QAConfig<T>,
+  QAClass: QAStatics<T>,
   container: HTMLElement,
   selector: string = QAClass.selector,
   context: QAContext = createQAContext()
 ) {
   if ((QAClass as any).matches(container, selector)) {
-    return new QAClass(container, undefined, context);
+    return context.instantiateComponent(QAClass, container);
   }
   const elements = container.querySelectorAll(selector);
   for (let i = 0; i < elements.length; i++) {
     const element = (elements[i] as unknown) as HTMLElement;
     if ((QAClass as any).matches(element, selector)) {
-      return new QAClass(element, undefined, context);
+      return context.instantiateComponent(QAClass, element);
     }
   }
 
@@ -802,16 +893,11 @@ export function mount<T extends QA>(
   );
 }
 
-function firstOrUndefined<T extends QA>(items: Array<T>): void | T {
-  if (items.length === 0) {
-    return;
-  }
-  return items[0];
-}
-
-function atLeastOne<T extends QA>(items: Array<T>, message: string): Array<T> {
-  if (items.length === 0) {
-    throw new Error(message);
-  }
-  return items;
+export function waitForComponent<T extends QA>(
+  QAClass: QAStatics<T>,
+  container: HTMLElement,
+  selector: string = QAClass.selector,
+  context: QAContext = createQAContext()
+) {
+  return waitForElement(() => mount(QAClass, container, selector, context));
 }

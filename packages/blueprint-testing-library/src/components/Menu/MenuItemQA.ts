@@ -1,6 +1,10 @@
-import { QA } from "component-testing-library";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
 import { Classes } from "@blueprintjs/core";
-import { classNamesToSelector, hasClassNames, getIntent } from "../../utils";
+import { getIntent } from "../../utils";
 import { IconQA } from "../Icon";
 
 export class MenuItemQA extends QA {

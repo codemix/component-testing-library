@@ -1,5 +1,9 @@
-import { QA } from "component-testing-library";
-import { classNamesToSelector, getIntent, hasClassNames } from "../../utils";
+import {
+  QA,
+  classNamesToSelector,
+  hasClassNames
+} from "component-testing-library";
+import { getIntent } from "../../utils";
 import { Classes } from "@blueprintjs/core";
 
 export class ProgressBarQA extends QA {
