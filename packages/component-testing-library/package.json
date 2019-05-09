@@ -6,6 +6,9 @@
   "repository": "https://github.com/codemix/component-testing-library",
   "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/jest": "^23.3.13",
     "@types/react": "^16.8.4",
